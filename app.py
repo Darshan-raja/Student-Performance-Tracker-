@@ -7,7 +7,7 @@ from services import (
     add_student_db, list_students_db, get_student_db, add_grade_db,
     compute_student_average, class_average_db, subject_topper_db,
     validate_grade, validate_name, validate_roll, validate_subject,
-    export_csv, export_json
+    export_csv, export_json, update_student_name
 )
 
 app = Flask(__name__)
@@ -67,6 +67,25 @@ def student_details(roll_number):
         return redirect(url_for("students"))
     avg = compute_student_average(roll_number)
     return render_template("student_details.html", student=st, avg=avg)
+
+
+@app.route("/students/<roll_number>/edit", methods=["GET", "POST"])
+def edit_student(roll_number):
+    if request.method == "POST":
+        try:
+            new_name = validate_name(request.form.get("name", ""))
+            update_student_name(roll_number, new_name)
+            flash("✅ Student name updated successfully.", "success")
+            return redirect(url_for("student_details", roll_number=roll_number))
+        except Exception as e:
+            flash(f"❌ {e}", "danger")
+    
+    student = get_student_db(roll_number)
+    if not student:
+        flash("❌ Student not found.", "danger")
+        return redirect(url_for("students"))
+    
+    return render_template("edit_student.html", student=student)
 
 # -------- Grades --------
 

@@ -95,6 +95,22 @@ def get_student_db(roll_number: str) -> Optional[Dict]:
         st.grades[g["subject"]] = g["grade"]
     return st.to_dict()
 
+def update_student_name(roll_number: str, new_name: str) -> None:
+    """Update student name by roll number"""
+    roll_number = validate_roll(roll_number)
+    new_name = validate_name(new_name)
+    conn = get_connection()
+    cur = conn.cursor()
+    # Check if student exists
+    cur.execute("SELECT 1 FROM students WHERE roll_number=?", (roll_number,))
+    if not cur.fetchone():
+        conn.close()
+        raise ValueError("Student not found.")
+    # Update name
+    cur.execute("UPDATE students SET name = ? WHERE roll_number = ?", (new_name, roll_number))
+    conn.commit()
+    conn.close()
+
 def add_grade_db(roll_number: str, subject: str, grade: int) -> None:
     roll_number = validate_roll(roll_number)
     subject = validate_subject(subject)
